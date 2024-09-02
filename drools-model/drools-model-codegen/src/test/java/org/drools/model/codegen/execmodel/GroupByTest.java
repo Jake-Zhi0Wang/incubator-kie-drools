@@ -281,25 +281,23 @@ public class GroupByTest extends BaseModelTest {
 
     @Test
     public void testSumPersonAgeGroupByInitialWithBetaFilter() {
-        // TODO: For some reason, the compiled class expression thinks $p should be an integer?
         String str =
                 "import " + Person.class.getCanonicalName() + ";" +
                 "import " + Map.class.getCanonicalName() + ";" +
                 "global Map results;\n" +
                 "rule X when\n" +
-                "groupby( $p: Person ( $age: age ); " +
-                "$key : $p.getName().substring(0, 1); " +
-                "$sum : sum($age); " +
-                "$sum > $key.length())" +
+                "  $p: Person($age: age)\n" +
+                "  groupby($p; $key : $p.getName().substring(0, 1); $sum : sum($age))\n" +
+                "  eval($sum > $key.length())\n" +
                 "then\n" +
                 "  results.put($key, $sum);\n" +
                 "end";
-
+    
         assertSessionHasProperties(str, ksession -> {
-
-            Map results = new HashMap();
+    
+            Map<String, Integer> results = new HashMap<>();
             ksession.setGlobal("results", results);
-
+    
             ksession.insert(new Person("Mark", 42));
             ksession.insert(new Person("Edson", 38));
             FactHandle meFH = ksession.insert(new Person("Mario", 45));
@@ -307,24 +305,24 @@ public class GroupByTest extends BaseModelTest {
             ksession.insert(new Person("Edoardo", 33));
             FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
             ksession.fireAllRules();
-
+    
             assertThat(results.size()).isEqualTo(3);
             assertThat(results.get("G")).isEqualTo(35);
             assertThat(results.get("E")).isEqualTo(71);
             assertThat(results.get("M")).isEqualTo(126);
             results.clear();
-
+    
             ksession.delete(meFH);
             ksession.fireAllRules();
-
+    
             assertThat(results.size()).isEqualTo(1);
             assertThat(results.get("M")).isEqualTo(81);
             results.clear();
-
+    
             ksession.update(geoffreyFH, new Person("Geoffrey", 40));
             ksession.insert(new Person("Matteo", 38));
             ksession.fireAllRules();
-
+    
             assertThat(results.size()).isEqualTo(2);
             assertThat(results.get("G")).isEqualTo(40);
             assertThat(results.get("M")).isEqualTo(119);
