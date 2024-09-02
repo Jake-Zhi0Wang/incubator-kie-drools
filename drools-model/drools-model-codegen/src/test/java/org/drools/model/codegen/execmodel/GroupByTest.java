@@ -287,7 +287,7 @@ public class GroupByTest extends BaseModelTest {
                 "global Map results;\n" +
                 "rule X when\n" +
                 "  $p: Person($age: age)\n" +
-                "  groupby($p; $key : $p.getName().substring(0, 1); $sum : sum($age))\n" +
+                "  groupby($p, $key : $p.getName().substring(0, 1), $sum : sum($age))\n" +
                 "  eval($sum > $key.length())\n" +
                 "then\n" +
                 "  results.put($key, $sum);\n" +
