@@ -282,16 +282,17 @@ public class GroupByTest extends BaseModelTest {
     @Test
     public void testSumPersonAgeGroupByInitialWithBetaFilter() {
         String str =
-                "import " + Person.class.getCanonicalName() + ";" +
-                "import " + Map.class.getCanonicalName() + ";" +
-                "global Map results;\n" +
-                "rule X when\n" +
-                "  $p: Person($age: age)\n" +
-                "  groupby($p, $key : $p.getName().substring(0, 1), $sum : sum($age))\n" +
-                "  eval($sum > $key.length())\n" +
-                "then\n" +
-                "  results.put($key, $sum);\n" +
-                "end";
+            "import " + Person.class.getCanonicalName() + ";" +
+            "import " + Map.class.getCanonicalName() + ";" +
+            "global Map results;\n" +
+            "rule X when\n" +
+            "  $key: String() from collectList(Person())\n" +
+            "  accumulate($p: Person($age: age, $initial: name.substring(0, 1)); " +
+            "             $sum : sum($age))\n" +
+            "  eval($sum > $key.length())\n" +
+            "then\n" +
+            "  results.put($key, $sum);\n" +
+            "end";
     
         assertSessionHasProperties(str, ksession -> {
     
